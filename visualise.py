@@ -14,7 +14,7 @@ matplotlib.use("Agg")   # headless rendering
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import networkx as nx
-import numpy as np
+
 
 from campus_graph import CAMPUS_GRAPH, NODES, PARKING_LOTS
 from parking_agent import AgentDecision

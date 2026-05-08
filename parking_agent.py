@@ -53,6 +53,7 @@ class AgentDecision:
     arrival_hour:        int
     arrival_weekday:     int
     preference:          str
+    event:               int
     best:                LotRecommendation
     alternatives:        list[LotRecommendation]
     explanation:         str
@@ -111,7 +112,7 @@ class ParkingAgent:
     # ------------------------------------------------------------------
     def initialise(self, verbose: bool = True):
         """Train the occupancy model (call once before any recommend())."""
-        self.predictor.train(verbose=verbose)
+        self.predictor.initialise(verbose=verbose)
         self._ready = True
 
     # ------------------------------------------------------------------
@@ -198,6 +199,7 @@ class ParkingAgent:
             arrival_hour      = arrival_hour,
             arrival_weekday   = arrival_weekday,
             preference        = preference,
+            event             = event,
             best              = best,
             alternatives      = alternatives,
             explanation       = explanation,

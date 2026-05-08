@@ -15,7 +15,16 @@ Run with:
 """
 
 import sys, os, threading, io
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + "/..")
+
+# ── Path fix ─────────────────────────────────────────────────────────────────
+# gui.py is INSIDE campus_parking/.
+# We need the PARENT of that folder on sys.path so that
+# "from campus_parking.xxx import yyy" always works.
+_PACKAGE_DIR  = os.path.dirname(os.path.abspath(__file__))  # .../campus_parking
+_PROJECT_ROOT = os.path.dirname(_PACKAGE_DIR)               # parent folder
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+# ─────────────────────────────────────────────────────────────────────────────
 
 import customtkinter as ctk
 from tkinter import messagebox
@@ -25,11 +34,12 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.patches as mpatches
 import networkx as nx
-
-from campus_graph   import CAMPUS_GRAPH, NODES, PARKING_LOTS
+from search_algorithms import bfs, dfs, astar
+from campus_graph      import CAMPUS_GRAPH, NODES, PARKING_LOTS
 from occupancy_model import OccupancyPredictor
 from search_algorithms import compare_algorithms
-from parking_agent import ParkingAgent
+from parking_agent    import ParkingAgent
+
 
 # ── appearance ──────────────────────────────────────────────
 ctk.set_appearance_mode("dark")
@@ -321,7 +331,7 @@ class App(ctk.CTk):
 
         # ── Algorithm comparison text ──
         bfs_res = None
-        from search_algorithms import bfs
+        
         bfs_res = bfs(d.best.lot_id, d.destination)
         if bfs_res:
             algo_card = ctk.CTkFrame(self.center, fg_color=BG_CARD, corner_radius=12)
@@ -546,14 +556,14 @@ class App(ctk.CTk):
 
     # ── background model training ────────────────────────────
     def _bg_train(self):
-        metrics = self.agent.predictor.train(verbose=False)
+        metrics = self.agent.predictor.train(n_days=12, verbose=False)
         self.agent._ready = True
         self._model_ready = True
         self.after(0, self._on_model_ready, metrics)
 
     def _on_model_ready(self, metrics):
-        mae = metrics["MAE"]
-        r2  = metrics["R²"]
+        mae = metrics.get("test_MAE", metrics.get("MAE", "n/a"))
+        r2  = metrics.get("test_R2",  metrics.get("R²",  "n/a"))
         self.lbl_model.configure(
             text=f"● Neural Net Ready  MAE={mae}  R²={r2}",
             text_color=ACCENT2
@@ -603,7 +613,7 @@ class App(ctk.CTk):
         self._draw_campus_graph(decision)
         occ = self.agent.predictor.predict_all_lots(
             decision.arrival_hour, decision.arrival_weekday,
-            getattr(decision, "event", 0)
+            decision.event
         )
         self._draw_occupancy_chart(occ)
         self._draw_algo_chart(decision)
