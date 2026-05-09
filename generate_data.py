@@ -24,7 +24,6 @@ Target
   occupancy_pct : 0.0-1.0
 """
 
-import os
 import numpy as np
 import pandas as pd
 from campus_graph import LOT_ID_MAP

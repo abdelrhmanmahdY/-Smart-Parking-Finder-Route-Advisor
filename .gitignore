@@ -1,3 +1,5 @@
 env/
 __pycache__/
 *.pyc
+occupancy_model.pkl
+occupancy_dataset.csv

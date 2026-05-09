@@ -18,7 +18,7 @@ from sklearn.preprocessing   import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     mean_absolute_error, r2_score, mean_squared_error,
-    recall_score, precision_score, f1_score,
+
 )
 from generate_data import compute_hour_weight
 from campus_graph  import LOT_ID_MAP
@@ -47,6 +47,7 @@ class OccupancyPredictor:
             early_stopping=True,
             validation_fraction=0.1,
             n_iter_no_change=20,
+
         )
         self._trained = False
 
@@ -109,11 +110,6 @@ class OccupancyPredictor:
         test_r2   = r2_score(y_test,  yp_te)
         overfit   = train_r2 - test_r2
 
-        # 7. Classification metrics  (full = occupancy > 80%)
-        def binarise(arr): return (arr > 0.8).astype(int)
-        tr_b, te_b  = binarise(y_train),  binarise(y_test)
-        ptr_b, pte_b = binarise(yp_tr),   binarise(yp_te)
-
         metrics = {
             "rows_total":      len(df),
             "rows_train":      len(X_train),
@@ -125,12 +121,6 @@ class OccupancyPredictor:
             "train_MSE":       round(train_mse, 4),
             "test_MSE":        round(test_mse,  4),
             "overfit_gap":     round(overfit,   4),
-            "train_recall":    round(recall_score(tr_b,  ptr_b,  zero_division=0), 4),
-            "test_recall":     round(recall_score(te_b,  pte_b,  zero_division=0), 4),
-            "train_precision": round(precision_score(tr_b, ptr_b, zero_division=0), 4),
-            "test_precision":  round(precision_score(te_b, pte_b, zero_division=0), 4),
-            "train_F1":        round(f1_score(tr_b, ptr_b, zero_division=0), 4),
-            "test_F1":         round(f1_score(te_b, pte_b, zero_division=0), 4),
         }
 
         if verbose:
@@ -210,3 +200,7 @@ class OccupancyPredictor:
 
     def predict_all_lots(self, hour, weekday, event=0):
         return {lot: self.predict(lot, hour, weekday, event) for lot in LOT_ID_MAP}
+if __name__ == "__main__":
+    model=OccupancyPredictor()
+
+    model.initialise()
